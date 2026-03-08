@@ -6,6 +6,7 @@ let todos = []
 const form = document.getElementById('todo-form')
 const input = document.getElementById('todo-input')
 const list = document.getElementById('todo-list')
+const stats = document.getElementById('todo-stats')
 
 // Load todos from storage
 async function loadTodos() {
@@ -55,6 +56,25 @@ function createTodoElement(todo) {
   return li
 }
 
+// Render stats
+function renderStats() {
+  const total = todos.length
+  const completed = todos.filter(t => t.completed).length
+  const pending = total - completed
+
+  if (total === 0) {
+    stats.style.display = 'none'
+    return
+  }
+
+  stats.style.display = 'flex'
+  stats.innerHTML = `
+    <span>Total: ${total}</span>
+    <span>✓ ${completed}</span>
+    <span>○ ${pending}</span>
+  `
+}
+
 // Render todo list
 function renderTodos() {
   list.innerHTML = ''
@@ -62,14 +82,22 @@ function renderTodos() {
   if (todos.length === 0) {
     const empty = document.createElement('li')
     empty.className = 'empty-state'
-    empty.textContent = 'No tasks yet. Add one above!'
+    empty.innerHTML = `
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2M9 5a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2M9 5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2m-6 9l2 2 4-4"/>
+      </svg>
+      <p>No tasks yet. Add one above!</p>
+    `
     list.appendChild(empty)
+    renderStats()
     return
   }
 
   todos.forEach((todo) => {
     list.appendChild(createTodoElement(todo))
   })
+
+  renderStats()
 }
 
 // Add new todo
