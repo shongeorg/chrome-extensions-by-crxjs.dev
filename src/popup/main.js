@@ -4,7 +4,8 @@ const STORAGE_KEYS = {
   STATIONS: 'stations',
   ACTIVE_STATION: 'activeStation',
   COUNTRY: 'selectedCountry',
-  INDEX: 'stationIndex'
+  INDEX: 'stationIndex',
+  VOLUME: 'volume'
 }
 
 // DOM elements
@@ -255,7 +256,10 @@ playPauseBtn.addEventListener('click', togglePlayPause)
 stopBtn.addEventListener('click', stopPlayback)
 prevBtn.addEventListener('click', playPrevious)
 nextBtn.addEventListener('click', playNext)
-volumeSlider.addEventListener('input', (e) => setVolume(e.target.value))
+volumeSlider.addEventListener('input', (e) => {
+  setVolume(e.target.value)
+  saveToStorage(STORAGE_KEYS.VOLUME, e.target.value)
+})
 
 // Initialize
 async function init() {
@@ -263,6 +267,13 @@ async function init() {
   const savedCountry = await loadFromStorage(STORAGE_KEYS.COUNTRY)
   if (savedCountry) {
     countrySelect.value = savedCountry
+  }
+
+  // Load saved volume
+  const savedVolume = await loadFromStorage(STORAGE_KEYS.VOLUME)
+  if (savedVolume !== undefined) {
+    volumeSlider.value = savedVolume
+    setVolume(savedVolume)
   }
 
   // Load saved stations
@@ -275,7 +286,7 @@ async function init() {
   // Load saved active station
   const savedIndex = await loadFromStorage(STORAGE_KEYS.INDEX)
   const savedStation = await loadFromStorage(STORAGE_KEYS.ACTIVE_STATION)
-  
+
   if (savedStation && savedIndex >= 0) {
     currentIndex = savedIndex
     stationName.textContent = savedStation.name
