@@ -3,7 +3,7 @@ import pkg from './package.json'
 
 export default defineManifest({
   manifest_version: 3,
-  name: 'Radio Player',
+  name: 'Currency Converter',
   version: pkg.version,
   icons: {
     48: 'public/logo.png',
@@ -15,10 +15,9 @@ export default defineManifest({
     default_popup: 'src/popup/index.html',
   },
   permissions: [
-    'activeTab',
     'storage',
   ],
   host_permissions: [
-    'https://*.radio-browser.info/*',
+    'https://api.exchangerate-api.com/*',
   ],
 })

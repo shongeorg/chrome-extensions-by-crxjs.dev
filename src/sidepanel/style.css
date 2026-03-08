@@ -8,8 +8,15 @@
   font-family: system-ui, -apple-system, sans-serif;
   font-size: 14px;
 
-  --bg-primary: #282c34;
-  --text-primary: #abb2bf;
+  --bg-primary: #ffffff;
+  --text-primary: #212529;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg-primary: #1a1a2e;
+    --text-primary: #ffffff;
+  }
 }
 
 body {

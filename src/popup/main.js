@@ -1,315 +1,267 @@
-const API_BASE = 'https://de1.api.radio-browser.info/json/stations/bycountry'
+const API_BASE = 'https://api.exchangerate-api.com/v4/latest'
 
+// Основні валюти для відображення
+const MAIN_CURRENCIES = ['USD', 'EUR', 'GBP', 'UAH']
+
+// Всі валюти для селектів
+const CURRENCIES = {
+  USD: '🇺🇸 US Dollar',
+  EUR: '🇪🇺 Euro',
+  GBP: '🇬🇧 British Pound',
+  UAH: '🇺🇦 Ukrainian Hryvnia',
+  JPY: '🇯🇵 Japanese Yen',
+  CNY: '🇨🇳 Chinese Yuan',
+  CHF: '🇨🇭 Swiss Franc',
+  CAD: '🇨🇦 Canadian Dollar',
+  AUD: '🇦🇺 Australian Dollar',
+  RUB: '🇷🇺 Russian Ruble',
+  PLN: '🇵🇱 Polish Zloty',
+  CZK: '🇨🇿 Czech Koruna',
+  TRY: '🇹🇷 Turkish Lira',
+  INR: '🇮🇳 Indian Rupee',
+  BRL: '🇧🇷 Brazilian Real',
+  ZAR: '🇿🇦 South African Rand',
+  KRW: '🇰🇷 South Korean Won',
+  MXN: '🇲🇽 Mexican Peso',
+  SGD: '🇸🇬 Singapore Dollar',
+  HKD: '🇭🇰 Hong Kong Dollar',
+  NOK: '🇳🇴 Norwegian Krone',
+  SEK: '🇸🇪 Swedish Krona',
+  DKK: '🇩🇰 Danish Krone',
+  NZD: '🇳🇿 New Zealand Dollar',
+}
+
+// STORAGE keys
 const STORAGE_KEYS = {
-  STATIONS: 'stations',
-  ACTIVE_STATION: 'activeStation',
-  COUNTRY: 'selectedCountry',
-  INDEX: 'stationIndex',
-  VOLUME: 'volume'
+  CURRENCY_FROM: 'currencyFrom',
+  CURRENCY_TO: 'currencyTo',
+  BASE_CURRENCY: 'baseCurrency'
 }
 
 // DOM elements
-const countrySelect = document.getElementById('country-select')
-const stationsList = document.getElementById('stations-list')
+const amountFrom = document.getElementById('amount-from')
+const amountTo = document.getElementById('amount-to')
+const currencyFrom = document.getElementById('currency-from')
+const currencyTo = document.getElementById('currency-to')
+const swapBtn = document.getElementById('swap-btn')
+const ratesList = document.getElementById('rates-list')
 const loader = document.getElementById('loader')
-const stationName = document.getElementById('station-name')
-const stationStatus = document.getElementById('station-status')
-const playPauseBtn = document.getElementById('play-pause-btn')
-const stopBtn = document.getElementById('stop-btn')
-const prevBtn = document.getElementById('prev-btn')
-const nextBtn = document.getElementById('next-btn')
-const volumeSlider = document.getElementById('volume-slider')
-const volumeIcon = document.querySelector('.volume-icon')
 
-let stations = []
-let currentIndex = -1
-let audio = null
-let isPlaying = false
+let rates = {}
+let baseCurrency = 'USD'
 
-// Load data from storage
-async function loadFromStorage(key) {
-  return new Promise((resolve) => {
-    chrome.storage.local.get([key], (result) => {
-      resolve(result[key])
-    })
-  })
-}
+// Populate currency selects
+function populateSelects() {
+  const options = Object.entries(CURRENCIES)
+    .map(([code, name]) => `<option value="${code}">${name}</option>`)
+    .join('')
 
-// Save data to storage
-function saveToStorage(key, value) {
-  chrome.storage.local.set({ [key]: value })
+  currencyFrom.innerHTML = options
+  currencyTo.innerHTML = options
+
+  // Set defaults
+  currencyFrom.value = 'USD'
+  currencyTo.value = 'UAH'
 }
 
 // Show loader
 function showLoader() {
-  loader.classList.add('visible')
-  stationsList.style.opacity = '0.3'
+  loader.style.display = 'flex'
+  ratesList.style.opacity = '0.3'
 }
 
 // Hide loader
 function hideLoader() {
-  loader.classList.remove('visible')
-  stationsList.style.opacity = '1'
+  loader.style.display = 'none'
+  ratesList.style.opacity = '1'
 }
 
-// Fetch stations by country
-async function fetchStations(country) {
+// Fetch rates
+async function fetchRates(currency = 'USD') {
   showLoader()
   try {
-    const response = await fetch(`${API_BASE}/${encodeURIComponent(country)}`)
+    const response = await fetch(`${API_BASE}/${currency}`)
     const data = await response.json()
-    
-    // Sort by votes and limit to 50
-    stations = data
-      .sort((a, b) => b.votes - a.votes)
-      .slice(0, 50)
-    
-    saveToStorage(STORAGE_KEYS.STATIONS, stations)
-    renderStations()
+
+    rates = data.rates
+    baseCurrency = data.base
+
+    renderRates()
+    convertFromTo()
   } catch (error) {
-    console.error('Error fetching stations:', error)
-    stationsList.innerHTML = '<div class="error">❌ Failed to load stations</div>'
+    console.error('Error fetching rates:', error)
+    ratesList.innerHTML = '<div class="error">❌ Failed to load rates</div>'
   } finally {
     hideLoader()
   }
 }
 
-// Render stations list
-function renderStations() {
-  if (stations.length === 0) {
-    stationsList.innerHTML = '<div class="empty">📭 No stations found</div>'
+// Render rates cards
+function renderRates() {
+  if (Object.keys(rates).length === 0) {
+    ratesList.innerHTML = '<div class="empty">📭 No rates available</div>'
     return
   }
 
-  stationsList.innerHTML = stations.map((station, index) => `
-    <div class="station-card ${index === currentIndex ? 'active' : ''}" data-index="${index}">
-      <div class="station-favicon">
-        ${station.favicon 
-          ? `<img src="${station.favicon}" alt="" onerror="this.parentElement.textContent='📻'">` 
-          : '📻'}
-      </div>
-      <div class="station-info">
-        <div class="station-card-name">${escapeHtml(station.name)}</div>
-        <div class="station-card-meta">
-          ${station.bitrate ? `🎵 ${station.bitrate}kbps` : ''}
-          ${station.codec ? `· ${station.codec}` : ''}
+  // Show main currencies first
+  const mainRates = MAIN_CURRENCIES.filter(c => c !== baseCurrency)
+  
+  ratesList.innerHTML = mainRates.map(code => {
+    const rate = rates[code]
+    const inverse = (1 / rate).toFixed(4)
+    
+    return `
+      <div class="rate-card">
+        <div class="rate-header">
+          <span class="rate-flag">${getFlag(code)}</span>
+          <span class="rate-code">${code}</span>
+        </div>
+        <div class="rate-values">
+          <div class="rate-main">1 ${baseCurrency} = ${formatRate(rate)} ${code}</div>
+          <div class="rate-inverse">1 ${code} = ${inverse} ${baseCurrency}</div>
         </div>
       </div>
-      <div class="station-status-icon">
-        ${index === currentIndex ? '🔊' : ''}
-      </div>
-    </div>
-  `).join('')
-
-  // Add click handlers
-  stationsList.querySelectorAll('.station-card').forEach(card => {
-    card.addEventListener('click', () => {
-      const index = parseInt(card.dataset.index)
-      playStation(index)
-    })
-  })
+    `
+  }).join('')
 }
 
-// Escape HTML
-function escapeHtml(text) {
-  const div = document.createElement('div')
-  div.textContent = text
-  return div.innerHTML
-}
-
-// Play station
-async function playStation(index) {
-  if (index < 0 || index >= stations.length) return
-
-  currentIndex = index
-  const station = stations[index]
-
-  // Stop current audio
-  if (audio) {
-    audio.pause()
-    audio = null
+// Get flag emoji for currency
+function getFlag(code) {
+  const flags = {
+    USD: '🇺🇸',
+    EUR: '🇪🇺',
+    GBP: '🇬🇧',
+    UAH: '🇺🇦',
+    JPY: '🇯🇵',
+    CNY: '🇨🇳',
+    CHF: '🇨🇭',
+    CAD: '🇨🇦',
+    AUD: '🇦🇺',
+    RUB: '🇷🇺',
+    PLN: '🇵🇱',
+    CZK: '🇨🇿',
+    TRY: '🇹🇷',
+    INR: '🇮🇳',
+    BRL: '🇧🇷',
+    ZAR: '🇿🇦',
+    KRW: '🇰🇷',
+    MXN: '🇲🇽',
+    SGD: '🇸🇬',
+    HKD: '🇭🇰',
+    NOK: '🇳🇴',
+    SEK: '🇸🇪',
+    DKK: '🇩🇰',
+    NZD: '🇳🇿',
   }
-
-  // Update UI
-  stationName.textContent = station.name
-  stationStatus.textContent = '📡 Connecting...'
-  playPauseBtn.textContent = '⏸️'
-  isPlaying = true
-
-  // Save to storage
-  saveToStorage(STORAGE_KEYS.ACTIVE_STATION, station)
-  saveToStorage(STORAGE_KEYS.INDEX, index)
-
-  // Create audio element
-  audio = new Audio(station.url_resolved || station.url)
-  audio.volume = volumeSlider.value / 100
-
-  audio.addEventListener('canplay', () => {
-    stationStatus.textContent = '🔊 Playing'
-    audio.play()
-  })
-
-  audio.addEventListener('error', () => {
-    stationStatus.textContent = '❌ Error loading stream'
-    playPauseBtn.textContent = '▶️'
-    isPlaying = false
-  })
-
-  audio.addEventListener('waiting', () => {
-    stationStatus.textContent = '📡 Buffering...'
-  })
-
-  audio.addEventListener('playing', () => {
-    stationStatus.textContent = '🔊 Playing'
-  })
-
-  // Update station list
-  renderStations()
-
-  // Auto-scroll to active station
-  setTimeout(() => {
-    const activeCard = stationsList.querySelector('.station-card.active')
-    if (activeCard) {
-      activeCard.scrollIntoView({
-        behavior: 'smooth',
-        block: 'center'
-      })
-    }
-  }, 100)
+  return flags[code] || '💱'
 }
 
-// Toggle play/pause
-function togglePlayPause() {
-  if (!audio || currentIndex === -1) {
-    if (stations.length > 0) {
-      playStation(0)
-    }
+// Format rate
+function formatRate(rate) {
+  if (rate >= 1000) return rate.toFixed(2)
+  if (rate >= 1) return rate.toFixed(4)
+  return rate.toFixed(6)
+}
+
+// Convert currency (from -> to)
+function convertFromTo() {
+  const from = currencyFrom.value
+  const to = currencyTo.value
+  const amount = parseFloat(amountFrom.value) || 0
+
+  if (from === to) {
+    amountTo.value = amount.toFixed(2)
     return
   }
 
-  if (isPlaying) {
-    audio.pause()
-    playPauseBtn.textContent = '▶️'
-    stationStatus.textContent = '⏸️ Paused'
-    isPlaying = false
-  } else {
-    audio.play()
-    playPauseBtn.textContent = '⏸️'
-    stationStatus.textContent = '🔊 Playing'
-    isPlaying = true
-  }
-}
-
-// Stop playback
-function stopPlayback() {
-  if (audio) {
-    audio.pause()
-    audio = null
-  }
-  playPauseBtn.textContent = '▶️'
-  stationStatus.textContent = ''
-  stationName.textContent = 'Select a station'
-  isPlaying = false
-  currentIndex = -1
-  saveToStorage(STORAGE_KEYS.INDEX, -1)
-  renderStations()
-}
-
-// Previous station
-function playPrevious() {
-  if (stations.length === 0) return
-  const newIndex = currentIndex <= 0 ? stations.length - 1 : currentIndex - 1
-  playStation(newIndex)
-}
-
-// Next station
-function playNext() {
-  if (stations.length === 0) return
-  const newIndex = currentIndex >= stations.length - 1 ? 0 : currentIndex + 1
-  playStation(newIndex)
-}
-
-// Set volume
-function setVolume(value) {
-  if (audio) {
-    audio.volume = value / 100
-  }
+  // Convert through base currency
+  const fromRate = rates[from] || 1
+  const toRate = rates[to] || 1
   
-  // Update volume icon
-  if (value == 0) {
-    volumeIcon.textContent = '🔇'
-  } else if (value < 50) {
-    volumeIcon.textContent = '🔉'
+  let result
+  
+  if (baseCurrency === from) {
+    result = amount * toRate
+  } else if (baseCurrency === to) {
+    result = amount / fromRate
   } else {
-    volumeIcon.textContent = '🔊'
+    const inUSD = amount / fromRate
+    result = inUSD * toRate
   }
+
+  amountTo.value = result.toFixed(4)
 }
 
-// Country select change
-countrySelect.addEventListener('change', (e) => {
-  saveToStorage(STORAGE_KEYS.COUNTRY, e.target.value)
-  fetchStations(e.target.value)
+// Convert currency (to -> from)
+function convertToFrom() {
+  const from = currencyFrom.value
+  const to = currencyTo.value
+  const amount = parseFloat(amountTo.value) || 0
+
+  if (from === to) {
+    amountFrom.value = amount.toFixed(2)
+    return
+  }
+
+  const fromRate = rates[from] || 1
+  const toRate = rates[to] || 1
+  
+  let result
+  
+  if (baseCurrency === from) {
+    result = amount / toRate
+  } else if (baseCurrency === to) {
+    result = amount * fromRate
+  } else {
+    const inUSD = amount / toRate
+    result = inUSD * fromRate
+  }
+
+  amountFrom.value = result.toFixed(4)
+}
+
+// Swap currencies
+function swapCurrencies() {
+  const temp = currencyFrom.value
+  const tempAmount = amountFrom.value
+  
+  currencyFrom.value = currencyTo.value
+  currencyTo.value = temp
+  
+  amountFrom.value = amountTo.value
+  
+  fetchRates(currencyFrom.value)
+}
+
+// Event listeners
+currencyFrom.addEventListener('change', () => {
+  chrome.storage.local.set({ [STORAGE_KEYS.CURRENCY_FROM]: currencyFrom.value })
+  fetchRates(currencyFrom.value)
 })
 
-// Player controls
-playPauseBtn.addEventListener('click', togglePlayPause)
-stopBtn.addEventListener('click', stopPlayback)
-prevBtn.addEventListener('click', playPrevious)
-nextBtn.addEventListener('click', playNext)
-volumeSlider.addEventListener('input', (e) => {
-  setVolume(e.target.value)
-  saveToStorage(STORAGE_KEYS.VOLUME, e.target.value)
+currencyTo.addEventListener('change', () => {
+  chrome.storage.local.set({ [STORAGE_KEYS.CURRENCY_TO]: currencyTo.value })
+  convertFromTo()
 })
+
+amountFrom.addEventListener('input', convertFromTo)
+amountTo.addEventListener('input', convertToFrom)
+swapBtn.addEventListener('click', swapCurrencies)
 
 // Initialize
 async function init() {
-  // Load saved country
-  const savedCountry = await loadFromStorage(STORAGE_KEYS.COUNTRY)
-  if (savedCountry) {
-    countrySelect.value = savedCountry
-  }
-
-  // Load saved volume
-  const savedVolume = await loadFromStorage(STORAGE_KEYS.VOLUME)
-  if (savedVolume !== undefined) {
-    volumeSlider.value = savedVolume
-    setVolume(savedVolume)
-  }
-
-  // Load saved stations
-  const savedStations = await loadFromStorage(STORAGE_KEYS.STATIONS)
-  if (savedStations && savedStations.length > 0) {
-    stations = savedStations
-    renderStations()
-  }
-
-  // Load saved active station
-  const savedIndex = await loadFromStorage(STORAGE_KEYS.INDEX)
-  const savedStation = await loadFromStorage(STORAGE_KEYS.ACTIVE_STATION)
-
-  if (savedStation && savedIndex >= 0) {
-    currentIndex = savedIndex
-    stationName.textContent = savedStation.name
-    playStation(savedIndex)
-    isPlaying = false // Will be set by audio events
-    playPauseBtn.textContent = '▶️'
-  }
-
-  // Fetch stations if not loaded
-  if (stations.length === 0) {
-    fetchStations(countrySelect.value)
-  } else if (currentIndex >= 0) {
-    // Scroll to saved station if stations already loaded
-    setTimeout(() => {
-      const activeCard = stationsList.querySelector('.station-card.active')
-      if (activeCard) {
-        activeCard.scrollIntoView({
-          behavior: 'smooth',
-          block: 'center'
-        })
-      }
-    }, 200)
-  }
+  populateSelects()
+  
+  // Load saved currencies
+  chrome.storage.local.get([STORAGE_KEYS.CURRENCY_FROM, STORAGE_KEYS.CURRENCY_TO], (result) => {
+    if (result[STORAGE_KEYS.CURRENCY_FROM]) {
+      currencyFrom.value = result[STORAGE_KEYS.CURRENCY_FROM]
+    }
+    if (result[STORAGE_KEYS.CURRENCY_TO]) {
+      currencyTo.value = result[STORAGE_KEYS.CURRENCY_TO]
+    }
+    fetchRates(currencyFrom.value)
+  })
 }
 
 init()
