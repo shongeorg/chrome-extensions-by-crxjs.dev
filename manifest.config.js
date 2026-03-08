@@ -3,7 +3,7 @@ import pkg from './package.json'
 
 export default defineManifest({
   manifest_version: 3,
-  name: 'CSS Variables Extractor',
+  name: 'Stock Images',
   version: pkg.version,
   icons: {
     48: 'public/logo.png',
@@ -14,11 +14,15 @@ export default defineManifest({
     },
     default_popup: 'src/popup/index.html',
   },
-  content_scripts: [{
-    js: ['src/content/main.js'],
-    matches: ['https://*/*', 'http://*/*'],
-  }],
   permissions: [
     'activeTab',
+  ],
+  host_permissions: [
+    'https://api.unsplash.com/*',
+    'https://api.pexels.com/*',
+    'https://pixabay.com/*',
+    'https://images.unsplash.com/*',
+    'https://images.pexels.com/*',
+    'https://cdn.pixabay.com/*',
   ],
 })

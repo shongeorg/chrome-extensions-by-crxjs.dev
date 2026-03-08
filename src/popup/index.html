@@ -3,18 +3,22 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>CSS Variables Extractor</title>
+    <title>Stock Images</title>
     <link rel="stylesheet" href="./style.css" />
   </head>
   <body>
     <div id="app">
       <header>
         <div class="header-left">
-          <h1>CSS Variables</h1>
-          <span id="count-badge" class="count-badge">0</span>
+          <h1>Stock Images</h1>
         </div>
         <div class="header-actions">
-          <button id="refresh-btn" class="icon-btn" title="Refresh">
+          <select id="api-select" class="api-select">
+            <option value="unsplash">Unsplash</option>
+            <option value="pexels">Pexels</option>
+            <option value="pixabay">Pixabay</option>
+          </select>
+          <button id="refresh-btn" class="icon-btn" title="New image">
             <svg
               width="18"
               height="18"
@@ -30,29 +34,28 @@
               ></path>
             </svg>
           </button>
-          <button id="copy-btn" class="icon-btn" title="Copy all">
-            <svg
-              width="18"
-              height="18"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-            >
-              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-              <path
-                d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"
-              ></path>
-            </svg>
-          </button>
         </div>
       </header>
 
       <div id="status" class="status"></div>
 
-      <div class="variables-container">
-        <div id="variables-list" class="variables-list"></div>
-        <pre id="css-output" class="css-output"></pre>
+      <div class="image-container">
+        <div id="loader" class="loader">
+          <div class="loader-spinner"></div>
+        </div>
+        <img id="random-image" class="random-image" alt="Random stock image" />
+        <div id="image-info" class="image-info"></div>
+      </div>
+
+      <div class="copy-section">
+        <p class="copy-label">Copy image URL:</p>
+        <div class="copy-buttons">
+          <button class="copy-btn size-btn" data-size="thumb">Thumbnail</button>
+          <button class="copy-btn size-btn" data-size="small">Small (400px)</button>
+          <button class="copy-btn size-btn" data-size="medium">Medium (800px)</button>
+          <button class="copy-btn size-btn" data-size="large">Large (1600px)</button>
+          <button class="copy-btn size-btn" data-size="original">Original</button>
+        </div>
       </div>
     </div>
     <script type="module" src="./main.js"></script>
