@@ -164,6 +164,17 @@ async function playStation(index) {
 
   // Update station list
   renderStations()
+
+  // Auto-scroll to active station
+  setTimeout(() => {
+    const activeCard = stationsList.querySelector('.station-card.active')
+    if (activeCard) {
+      activeCard.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center'
+      })
+    }
+  }, 100)
 }
 
 // Toggle play/pause
@@ -276,6 +287,17 @@ async function init() {
   // Fetch stations if not loaded
   if (stations.length === 0) {
     fetchStations(countrySelect.value)
+  } else if (currentIndex >= 0) {
+    // Scroll to saved station if stations already loaded
+    setTimeout(() => {
+      const activeCard = stationsList.querySelector('.station-card.active')
+      if (activeCard) {
+        activeCard.scrollIntoView({
+          behavior: 'smooth',
+          block: 'center'
+        })
+      }
+    }, 200)
   }
 }
 
