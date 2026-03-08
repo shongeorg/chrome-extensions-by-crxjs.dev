@@ -3,7 +3,7 @@ import pkg from './package.json'
 
 export default defineManifest({
   manifest_version: 3,
-  name: pkg.name,
+  name: 'CSS Variables Extractor',
   version: pkg.version,
   icons: {
     48: 'public/logo.png',
@@ -16,14 +16,9 @@ export default defineManifest({
   },
   content_scripts: [{
     js: ['src/content/main.js'],
-    matches: ['https://*/*'],
+    matches: ['https://*/*', 'http://*/*'],
   }],
   permissions: [
-    'sidePanel',
-    'contentSettings',
-    'storage',
+    'activeTab',
   ],
-  side_panel: {
-    default_path: 'src/sidepanel/index.html',
-  },
 })

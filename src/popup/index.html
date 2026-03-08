@@ -3,16 +3,57 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Tasks</title>
+    <title>CSS Variables Extractor</title>
+    <link rel="stylesheet" href="./style.css" />
   </head>
   <body>
     <div id="app">
-      <h1>Tasks</h1>
-      <form id="todo-form">
-        <input type="text" id="todo-input" placeholder="Add a new task..." autocomplete="off" />
-        <button type="submit" id="add-btn">+</button>
-      </form>
-      <ul id="todo-list"></ul>
+      <header>
+        <div class="header-left">
+          <h1>CSS Variables</h1>
+          <span id="count-badge" class="count-badge">0</span>
+        </div>
+        <div class="header-actions">
+          <button id="refresh-btn" class="icon-btn" title="Refresh">
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path d="M23 4v6h-6"></path>
+              <path d="M1 20v-6h6"></path>
+              <path
+                d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"
+              ></path>
+            </svg>
+          </button>
+          <button id="copy-btn" class="icon-btn" title="Copy all">
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+              <path
+                d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"
+              ></path>
+            </svg>
+          </button>
+        </div>
+      </header>
+
+      <div id="status" class="status"></div>
+
+      <div class="variables-container">
+        <div id="variables-list" class="variables-list"></div>
+        <pre id="css-output" class="css-output"></pre>
+      </div>
     </div>
     <script type="module" src="./main.js"></script>
   </body>
