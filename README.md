@@ -1,23 +1,18 @@
-# Stock Images — Chrome Extension
+# Radio Player — Chrome Extension
 
-Розширення для Chrome для перегляду випадкових стокових зображень з популярних API.
+Інтернет-радіо плеєр для Chrome з підтримкою тисяч станцій з усього світу.
 
 ![Preview](./preview.jpg)
 
 ## Можливості
 
-- 🖼️ Випадкові зображення з трьох сервісів:
-  - **Unsplash** — якісні фото від професійних фотографів
-  - **Pexels** — безкоштовні стокові фото
-  - **Pixabay** — велика бібліотека зображень
-- 📋 Швидке копіювання URL зображення у різних розмірах:
-  - Thumbnail
-  - Small (400px)
-  - Medium (800px)
-  - Large (1600px)
-  - Original
-- 🎨 Темна тема інтерфейсу
-- 🔄 Миттєве оновлення зображення
+- 📻 **50 000+ радіостанцій** з API Radio Browser
+- 🌍 **Вибір країни** — 10+ країн у швидкому доступі
+- ▶️ **Плеєр** — Play/Pause, Stop, Previous, Next
+- 🔊 **Гучність** — регулювання гучності
+- 💾 **Збереження** — активна станція та країна зберігаються
+- 🎨 **Atom Dark тема** — приємний темний інтерфейс
+- 📱 **Картки станцій** — назва, bitrate, codec, favicon
 
 ## Встановлення
 
@@ -50,34 +45,36 @@ npm run build
 ```
 tasks/
 ├── src/
-│   ├── popup/           # Основне вікно розширення
+│   ├── popup/           # Основне вікно з плеєром
 │   │   ├── index.html
-│   │   ├── main.js
-│   │   └── style.css
-│   ├── sidepanel/       # Side panel (заглушка)
+│   │   ├── main.js      # Логіка плеєра та API
+│   │   └── style.css    # Atom Dark стилі
+│   ├── sidepanel/       # Side panel
 │   └── content/         # Content script
 ├── public/
 │   └── logo.png
 ├── manifest.config.js   # Manifest V3 конфігурація
 ├── vite.config.js       # Vite конфігурація
-└── .env                 # API ключі
+└── package.json
 ```
 
-## API ключі
+## API
 
-Створи файл `.env` у корені проекту:
-
-```env
-VITE_UNSPLASH_API_KEY=your_unsplash_key
-VITE_PEXELS_API_KEY=your_pexels_key
-VITE_PIXABAY_API_KEY=your_pixabay_key
-```
+Використовується [Radio Browser API](https://www.radio-browser.info/):
+- `https://de1.api.radio-browser.info/json/stations/bycountry/{country}`
 
 ## Технології
 
-- **Vite** — збірка проекту
-- **@crxjs/vite-plugin** — плагін для Chrome Extension
-- **Manifest V3** — остання версія маніфесту Chrome
+- **Vite** — швидка збірка
+- **@crxjs/vite-plugin** — Chrome Extension плагін
+- **Manifest V3** — остання версія маніфесту
+- **Chrome Storage API** — збереження станції та країни
+- **HTML5 Audio** — відтворення потоку
+
+## Дозволи
+
+- `storage` — збереження активної станції та країни
+- `host_permissions` — доступ до API Radio Browser
 
 ## Ліцензія
 

@@ -3,7 +3,7 @@ import pkg from './package.json'
 
 export default defineManifest({
   manifest_version: 3,
-  name: 'Stock Images',
+  name: 'Radio Player',
   version: pkg.version,
   icons: {
     48: 'public/logo.png',
@@ -16,13 +16,9 @@ export default defineManifest({
   },
   permissions: [
     'activeTab',
+    'storage',
   ],
   host_permissions: [
-    'https://api.unsplash.com/*',
-    'https://api.pexels.com/*',
-    'https://pixabay.com/*',
-    'https://images.unsplash.com/*',
-    'https://images.pexels.com/*',
-    'https://cdn.pixabay.com/*',
+    'https://*.radio-browser.info/*',
   ],
 })

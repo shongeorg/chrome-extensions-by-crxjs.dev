@@ -5,28 +5,11 @@
 }
 
 :root {
-  font-family: 'JetBrains Mono', 'Fira Code', Consolas, monospace;
-  font-size: 13px;
+  font-family: system-ui, -apple-system, sans-serif;
+  font-size: 14px;
 
-  /* Чорна тема - завжди */
-  --bg-primary: #000000;
-  --bg-secondary: #0a0a0a;
-  --bg-tertiary: #1a1a1a;
-  --bg-code: #0a0a0a;
-  --text-primary: #ffffff;
-  --text-secondary: #a0a0a0;
-  --text-muted: #666666;
-  --border-color: #333333;
-  --accent-color: #6366f1;
-  --accent-hover: #4f46e5;
-  --success-bg: #166534;
-  --success-text: #dcfce7;
-  --error-bg: #991b1b;
-  --error-text: #fee2e2;
-  --info-bg: #075985;
-  --info-text: #e0f2fe;
-  --shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
-  --shadow-lg: 0 4px 6px rgba(0, 0, 0, 0.6);
+  --bg-primary: #282c34;
+  --text-primary: #abb2bf;
 }
 
 body {
@@ -43,7 +26,6 @@ body {
 }
 
 h1 {
-  font-size: 1.1rem;
+  font-size: 1.2rem;
   font-weight: 600;
-  color: var(--text-primary);
 }
