@@ -196,42 +196,49 @@ body {
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
+  margin-top: 0.25rem;
 }
 
 .volume-icon {
   font-size: 1rem;
   color: var(--text-secondary);
+  flex-shrink: 0;
 }
 
 .volume-slider {
   flex: 1;
   max-width: 150px;
-  height: 4px;
+  height: 6px;
   -webkit-appearance: none;
   appearance: none;
   background: var(--bg-tertiary);
   border-radius: var(--radius-sm);
   outline: none;
+  display: flex;
+  align-items: center;
 }
 
 .volume-slider::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
-  width: 14px;
-  height: 14px;
+  width: 16px;
+  height: 16px;
   background: var(--accent-color);
   border-radius: 50%;
   cursor: pointer;
   transition: all 0.2s ease;
+  margin-top: -5px;
+  box-shadow: var(--shadow);
 }
 
 .volume-slider::-webkit-slider-thumb:hover {
   background: var(--accent-hover);
   transform: scale(1.2);
+  box-shadow: var(--shadow-md);
 }
 
 .volume-slider::-webkit-slider-runnable-track {
-  height: 4px;
+  height: 6px;
   background: var(--bg-tertiary);
   border-radius: var(--radius-sm);
 }
